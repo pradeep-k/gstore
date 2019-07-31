@@ -59,30 +59,40 @@ typedef uint64_t vertex_t;
 typedef uint16_t word_t;
 typedef uint64_t part_id;
 
-extern index_t p;
+
+//tile count in 1 dimension
 extern index_t p_s;
+
+//physical group count in 1 dimension
+extern index_t p;
 
 #define COMPACT_GRID
 //#define HALF_GRID
 
-#define NUM_THDS 56 
+#define NUM_THDS 32 
 #define bytes_in_edge_shift 2 
 
+
+//For tile count in the graph
 #define bit_shift2 16
 #define part_mask2 (-1UL << bit_shift2)
 #define part_mask2_2 ~(part_mask2)
 
-#define bit_shift0 26
+//For conversion XXX
+#define bit_shift0 25
 #define part_mask0 (-1UL << bit_shift0)
 #define part_mask0_2 ~(part_mask0)
 
 //--------******* ----------//
+
+//For tiles in a physical group
 #define p_p 256 
 #define bit_shift3 8 
 #define part_mask3 (-1UL << bit_shift3)
 #define part_mask3_2 ~(part_mask3)
 
-//bit_shift2+bit_shift3
+//For physical group count in the graph
+//bit_shift3+bit_shift3
 #define bit_shift1 24 
 #define part_mask1 (-1UL << bit_shift1)
 #define part_mask1_2 ~(part_mask1) 
@@ -577,20 +587,35 @@ class grid {
 public:
     grid();
     ~grid();
+    
+    void init(int argc, char* argv[]);
+
+    //In-memory conversions
     void pre_grid(string edgefile, gedge_t* edges, index_t nedges);
     void proc_grid(string edgefile, string part_file);
     
-    void pre_grid_big(string edgefile);
-    void proc_grid_big(string edgefile, string part_file);
+    //Out-of-core conversion for converting big files/dir to G-Store format
+    void proc_grid_big(string edgefile, string part_file, bool is_odir);
+    
+    //They generate intermediate files
+    void pre_grid_file(string edgefile);
+    void pre_grid_dir(string idir);
+
+    //It reads the intermediate files to generate final one giant files
+    void post_grid_file(string edgefile, string part_file, bool is_dir);
+    //It reads the intermediate files to generate many small files
+    void post_grid_dir(string edgefile, string part_file, bool is_dir);
+
+    
 	
 	void pre_csr(string edgefile, gedge_t* edges, index_t nedges);
     void proc_csr(string edgefile, string part_file);
 	
-	void compress_degree();
-    void init(int argc, char* argv[]);
     void save_grid(string edgefile);
-    void save_grid_big(string edgefile);
-    void save_meta_files(string edgefile);
+    void save_grid_big(string edgefile, bool is_odir);
+    void save_start_files(string edgefile, bool is_odir);
+    void save_degree_files(string edgefile);
+    void compress_degree();
 
 	void analyze_grid_size(string edgefile);
     
